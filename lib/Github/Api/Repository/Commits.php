@@ -11,9 +11,13 @@ use Github\Api\AbstractApi;
  */
 class Commits extends AbstractApi
 {
+    const REPOS_PATH = '/repos/';
+
     public function all($username, $repository, array $params)
     {
-        return $this->get('/repos/'.rawurlencode($username).'/'.rawurlencode($repository).'/commits', $params);
+        return $this->get(
+            self::REPOS_PATH . rawurlencode($username) . '/' . rawurlencode($repository) . '/commits', $params
+        );
     }
 
     public function compare($username, $repository, $base, $head, $mediaType = null)
@@ -23,11 +27,37 @@ class Commits extends AbstractApi
             $headers['Accept'] = $mediaType;
         }
 
-        return $this->get('/repos/'.rawurlencode($username).'/'.rawurlencode($repository).'/compare/'.rawurlencode($base).'...'.rawurlencode($head), [], $headers);
+        return $this->get(
+            self::REPOS_PATH . rawurlencode($username) . '/' . rawurlencode(
+                $repository
+            ) . '/compare/' . rawurlencode(
+                $base
+            ) . '...' . rawurlencode($head), [], $headers
+        );
     }
 
     public function show($username, $repository, $sha)
     {
-        return $this->get('/repos/'.rawurlencode($username).'/'.rawurlencode($repository).'/commits/'.rawurlencode($sha));
+        return $this->get(
+            self::REPOS_PATH . rawurlencode($username) . '/' . rawurlencode($repository) . '/commits/' . rawurlencode(
+                $sha
+            )
+        );
+    }
+
+    public function pulls($username, $repository, $sha)
+    {
+        return $this->get(
+            self::REPOS_PATH . rawurlencode($username) . '/' . rawurlencode($repository)
+            . '/commits/' . rawurlencode($sha) . '/pulls'
+        );
+    }
+
+    public function branchesWhereHead($username, $repository, $sha)
+    {
+        return $this->get(
+            self::REPOS_PATH . rawurlencode($username) . '/' . rawurlencode($repository)
+            . '/commits/' . rawurlencode($sha) . '/branches-where-head'
+        );
     }
 }

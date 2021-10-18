@@ -16,6 +16,7 @@ use Github\Api\Repository\Commits;
 use Github\Api\Repository\Contents;
 use Github\Api\Repository\DeployKeys;
 use Github\Api\Repository\Downloads;
+use Github\Api\Repository\Environments;
 use Github\Api\Repository\Forks;
 use Github\Api\Repository\Hooks;
 use Github\Api\Repository\Labels;
@@ -809,5 +810,10 @@ class Repo extends AbstractApi
         $this->acceptHeaderValue = 'application/vnd.github.baptiste-preview+json';
 
         return $this->post('/repos/'.rawurldecode($templateOwner).'/'.rawurldecode($templateRepo).'/generate', $parameters);
+    }
+
+    public function environments(): Environments
+    {
+        return new Environments($this->getClient());
     }
 }

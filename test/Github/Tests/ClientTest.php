@@ -3,6 +3,7 @@
 namespace Github\Tests;
 
 use Github\Api;
+use Github\AuthMethod;
 use Github\Client;
 use Github\Exception\BadMethodCallException;
 use Github\Exception\InvalidArgumentException;
@@ -68,9 +69,9 @@ class ClientTest extends \PHPUnit\Framework\TestCase
     public function getAuthenticationFullData()
     {
         return [
-            ['token', null, Client::AUTH_ACCESS_TOKEN],
-            ['client_id', 'client_secret', Client::AUTH_CLIENT_ID],
-            ['token', null, Client::AUTH_JWT],
+            ['token', null, AuthMethod::ACCESS_TOKEN],
+            ['client_id', 'client_secret', AuthMethod::CLIENT_ID],
+            ['token', null, AuthMethod::JWT],
         ];
     }
 
@@ -84,7 +85,7 @@ class ClientTest extends \PHPUnit\Framework\TestCase
             ->getMock();
         $builder->expects($this->once())
             ->method('addPlugin')
-            ->with($this->equalTo(new Authentication('token', null, Client::AUTH_ACCESS_TOKEN)));
+            ->with($this->equalTo(new Authentication('token', null, AuthMethod::ACCESS_TOKEN)));
 
         $builder->expects($this->once())
             ->method('removePlugin')
@@ -98,7 +99,7 @@ class ClientTest extends \PHPUnit\Framework\TestCase
             ->method('getHttpClientBuilder')
             ->willReturn($builder);
 
-        $client->authenticate('token', Client::AUTH_ACCESS_TOKEN);
+        $client->authenticate('token', AuthMethod::ACCESS_TOKEN);
     }
 
     /**
@@ -221,5 +222,26 @@ class ClientTest extends \PHPUnit\Framework\TestCase
         $httpClientBuilder = new Builder($httpClientMock);
         $client = new Client($httpClientBuilder, null, 'https://foobar.com');
         $client->enterprise()->stats()->show('all');
+    }
+
+    /**
+     * Make sure that the prepend is correct when using the v4 endpoint on Enterprise.
+     */
+    public function testEnterprisePrependGraphQLV4()
+    {
+        $httpClientMock = $this->getMockBuilder(ClientInterface::class)
+            ->setMethods(['sendRequest'])
+            ->getMock();
+
+        $httpClientMock->expects($this->once())
+            ->method('sendRequest')
+            ->with($this->callback(function (RequestInterface $request) {
+                return (string) $request->getUri() === 'https://foobar.com/api/graphql';
+            }))
+            ->willReturn(new Response(200, [], '[]'));
+
+        $httpClientBuilder = new Builder($httpClientMock);
+        $client = new Client($httpClientBuilder, 'v4', 'https://foobar.com');
+        $client->graphql()->execute('query');
     }
 }

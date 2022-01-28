@@ -182,6 +182,7 @@ class Repo extends AbstractApi
      * @param int         $teamId       The id of the team that will be granted access to this repository. This is only valid when creating a repo in an organization.
      * @param bool        $autoInit     `true` to create an initial commit with empty README, `false` for no initial commit
      * @param bool        $hasProjects  `true` to enable projects for this repository or false to disable them.
+     * @param string|null $visibility
      *
      * @return array returns repository data
      */
@@ -196,7 +197,8 @@ class Repo extends AbstractApi
         $hasDownloads = false,
         $teamId = null,
         $autoInit = false,
-        $hasProjects = true
+        $hasProjects = true,
+        $visibility = null
     ) {
         $path = null !== $organization ? '/orgs/'.$organization.'/repos' : '/user/repos';
 
@@ -204,7 +206,7 @@ class Repo extends AbstractApi
             'name'          => $name,
             'description'   => $description,
             'homepage'      => $homepage,
-            'private'       => !$public,
+            'visibility'    => $visibility ?? ($public ? 'public' : 'private'),
             'has_issues'    => $hasIssues,
             'has_wiki'      => $hasWiki,
             'has_downloads' => $hasDownloads,
@@ -258,13 +260,20 @@ class Repo extends AbstractApi
      * @param string $username   the user who owns the repository
      * @param string $repository the name of the repository
      * @param string $format     one of formats: "raw", "html", or "v3+json"
+     * @param string $dir        The alternate path to look for a README file
      * @param array  $params     additional query params like "ref" to fetch readme for branch/tag
      *
      * @return string|array the readme content
      */
-    public function readme($username, $repository, $format = 'raw', $params = [])
+    public function readme($username, $repository, $format = 'raw', $dir = null, $params = [])
     {
-        return $this->get('/repos/'.rawurlencode($username).'/'.rawurlencode($repository).'/readme', $params, [
+        $path = '/repos/'.rawurlencode($username).'/'.rawurlencode($repository).'/readme';
+
+        if (null !== $dir) {
+            $path .= '/'.rawurlencode($dir);
+        }
+
+        return $this->get($path, $params, [
             'Accept' => "application/vnd.github.$format",
         ]);
     }
@@ -620,7 +629,7 @@ class Repo extends AbstractApi
      * @param string $head       The head to merge. This can be a branch name or a commit SHA1.
      * @param string $message    Commit message to use for the merge commit. If omitted, a default message will be used.
      *
-     * @return array|null
+     * @return array|string
      */
     public function merge($username, $repository, $base, $head, $message = null)
     {

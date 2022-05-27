@@ -242,8 +242,8 @@ class User extends AbstractApi
      *
      * @return array
      */
-    public function events(string $username)
+    public function events(string $username, array $parameters = [])
     {
-        return $this->get('/users/'.rawurlencode($username).'/events');
+        return $this->get('/users/'.rawurlencode($username).'/events', $parameters);
     }
 }

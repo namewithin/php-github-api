@@ -167,6 +167,11 @@ class PullRequest extends AbstractApi
 
         return $this->patch('/repos/'.rawurlencode($username).'/'.rawurlencode($repository).'/pulls/'.rawurlencode($id), $params);
     }
+    
+    public function updateBranch($username, $repository, $id)
+    {
+        return $this->put('/repos/'.rawurlencode($username).'/'.rawurlencode($repository).'/pulls/'.rawurlencode($id).'/update-branch');
+    }
 
     public function merged($username, $repository, $id)
     {
